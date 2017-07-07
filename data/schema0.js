@@ -20,10 +20,28 @@ import {
   nodeDefinitions,
 } from 'graphql-relay';
 
+import {
+  // Import methods that your schema can use to interact with your database
+  User,
+  Widget,
+  getUser,
+  getViewer,
+  getWidget,
+  getWidgets,
+} from './database';
+
+/**
+ * We get the node interface and field from the Relay library.
+ *
+ * The first method defines the way we resolve an ID to its object.
+ * The second defines the way we resolve an object to its GraphQL type.
+ */
  const mongoose = require('mongoose');
 
  const PersonSchema = new mongoose.Schema({
-   id: String,
+   id: {
+     type: String
+   },
    first_name: {
      type: String,
    },
@@ -41,11 +59,21 @@ import {
    }
  });
 
+ // PersonSchema.set('toJSON', {getters: true});
+
  let Person = mongoose.model('Person', PersonSchema, 'persons');
+
+
+
+
+/**
+ * Define your own types here
+ */
 
 var userType = new GraphQLObjectType({
   name: 'User',
   fields: () => ({
+    id: globalIdField('User'),
     users: {
       type: new GraphQLList(new GraphQLObjectType({
         name: 'user',
@@ -53,7 +81,8 @@ var userType = new GraphQLObjectType({
           return {
             id: {
               name: 'id',
-              type: GraphQLString
+              type: new GraphQLNonNull(GraphQLID),
+              resolve: (obj) => obj._id
             },
             first_name: {
               name: 'first_name',
@@ -78,19 +107,9 @@ var userType = new GraphQLObjectType({
           }
         }
       })),
-      args:  {
-        user: {
-          name: 'user',
-          type: GraphQLString
-        },
-        password: {
-          name: 'password',
-          type: GraphQLString
-        }
-      },
-      resolve: function (a,params,c,d) {
+      resolve: function () {
         return new Promise((resolve, reject) => {
-          Person.find({"first_name": params.user, "password": params.password}).exec((err, res) => {
+          Person.find({}).exec((err, res) => {
             err ? reject(err) : resolve(res);
           });
         });
@@ -110,6 +129,7 @@ var userType = new GraphQLObjectType({
 var queryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
+    node: nodeField,
     viewer: {
       name: 'viewer',
       type: userType,

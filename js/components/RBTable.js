@@ -16,7 +16,7 @@ class RBTable extends React.Component {
   render() {
     return (
       <div>
-        <h1>Users list</h1>
+        <h1 className="text-center">Users Table</h1>
         <p style={ { color: 'red' } }>You cam click header to sort or click
         following button to perform a sorting by expose API</p>
         <button onClick={ this.handleBtnClick }>Sort by User ID</button>
